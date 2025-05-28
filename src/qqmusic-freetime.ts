@@ -98,7 +98,7 @@ const pages = (
             click(999, 273); // 右上角关闭按钮
             return;
           }
-          if (text.includes('点击广告')) {
+          if (text.includes('点击跳转')) {
             if (click(516, 2190)) {
               sleep(11e3);
               nav.back();
