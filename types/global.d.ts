@@ -8,7 +8,7 @@ declare global {
       name: string;
       placeholder?: string;
       help?: string;
-      type?: 'textarea' | 'range' | 'radio' | 'checkbox' | 'select';
+      type: 'text' | 'textarea' | 'range' | 'radio' | 'checkbox' | 'select';
       validation?: 'required';
       'validation-name'?: string;
       options?: Record<string, string>;
@@ -23,6 +23,7 @@ declare global {
     readonly [K in T['name']]: Extract<T, { name: K }> extends infer V extends T
       ? //@ts-ignore
         {
+          text: string;
           textarea: string;
           range: `${number}`;
           radio: keyof V['options'];

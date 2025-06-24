@@ -2,15 +2,6 @@ import { $, check, loop, toSearchParams, type Page } from '~/helper';
 
 const cfg = defineConfig([
   {
-    label: '页面检查间隔',
-    name: 'checkInterval',
-    help: '单位: ms',
-    type: 'range',
-    max: 1000,
-    step: 10,
-    'show-value': true,
-  },
-  {
     label: '模式',
     name: 'mode',
     type: 'select',
@@ -18,6 +9,18 @@ const cfg = defineConfig([
       ad: '免费畅听模式',
       gift: '免费领礼物',
     },
+  },
+  {
+    label: '点击跳转时长',
+    name: 'clickSkipDuration',
+    help: '单位: ms',
+    type: 'text',
+  },
+  {
+    label: '页面检查间隔',
+    name: 'checkInterval',
+    help: '单位: ms',
+    type: 'text',
   },
 ]);
 cfg.APP_ENV === 'development' && console.show();
@@ -52,14 +55,11 @@ const pages = (
         name: '免费模式',
         is: () => $('t?免费模式剩余时长').el,
         do() {
+          $('t=领取奖励').click();
           if (!$('t=去浏览').click()) {
             sleep(11e3);
             back();
           }
-          // if (!$('t=去完成').click()) {
-          //   this.is() || sleep(11e3);
-          // }
-          $('t=领取奖励').click();
           $('t=我知道了').click();
           return $('t=续时长').click() && $('t=去开启').click();
         },
@@ -100,7 +100,7 @@ const pages = (
           }
           if (text.includes('点击跳转')) {
             if (click(516, 2190)) {
-              sleep(11e3);
+              sleep(+cfg.clickSkipDuration);
               nav.back();
             } else {
               log('点击广告失败');

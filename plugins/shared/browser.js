@@ -5,7 +5,7 @@ import { scripts } from './json.js';
 const browser = await launch({
   executablePath: process.env.browser,
   headless: false,
-  args: ['--window-size=800,800', `--window-position=${1920 - 800},60`],
+  args: [`--window-position=${1920 - 800},60`],
 });
 export const page = await browser.newPage();
 page.setCookie(
@@ -16,12 +16,7 @@ page.setCookie(
   },
   {
     name: 'auth._token.local',
-    value: 'Bearer ' + process.env.token,
-    domain: 'hamibot.com',
-  },
-  {
-    name: 'auth._token_expiration.local',
-    value: '1759330046000',
+    value: process.env.token,
     domain: 'hamibot.com',
   },
 );
@@ -33,7 +28,7 @@ page.setCookie(
  */
 export async function choose(handles, cb) {
   for (const handle of await handles) if (await cb(handle)) return handle;
-  throw null;
+  throw new Error('No element found');
 }
 export const goto = Object.assign(
   async function (path) {
@@ -41,7 +36,7 @@ export const goto = Object.assign(
     const url = host + path;
     if (page.url() === url) return;
     await page.goto(url);
-    if (page.url() === host + 'login') throw 'Login failed';
+    if (page.url() === host + 'login') throw new Error('Login failed');
   },
   {
     console() {
@@ -66,7 +61,7 @@ export const goto = Object.assign(
       const btn = await choose(row.$$('button'), (el) =>
         el.evaluate((el) => el.innerText.includes('源码')),
       ).catch(() => {
-        throw 'Edit button not found';
+        throw Error('Edit button not found');
       });
       await btn.evaluate((el) => el.click());
       await page.waitForNavigation();

@@ -2,6 +2,15 @@ import { spawn } from 'child_process';
 import { choose, goto, page } from './shared/browser.js';
 import { basename, extname } from 'path';
 
+const copyCmds = {
+  win32: ['clip'],
+  drawin: ['pbcopy'],
+  linux: ['xclip', ['-selection', 'clipboard']],
+}[process.platform];
+if (!copyCmds) {
+  throw new Error("Can't copy, unsupported platform: " + process.platform);
+}
+
 function debounce(fn, ms) {
   let timer;
   return function (...e) {
@@ -13,37 +22,27 @@ async function cv(text) {
   (await page.$('div.CodeMirror-scroll'))?.evaluate((el) =>
     el.dispatchEvent(new MouseEvent('mousedown')),
   );
-  const cmd = spawn('clip');
-  cmd.stdin.write(text);
-  cmd.stdin.end();
+  const subprocess = spawn(...copyCmds);
+  subprocess.stdin.write(text);
+  subprocess.stdin.end();
   await page.keyboard.down('Control');
   await page.keyboard.press('KeyA');
   await page.keyboard.press('KeyV');
   await page.keyboard.press('KeyS');
   await page.keyboard.up('Control');
 }
-async function focusFile(filename) {
-  return choose(page.$$('div.file'), async (el) => {
-    const text = await el.evaluate((el) => el.innerText);
-    return text.includes(filename);
-  }).then(
-    (el) => el.evaluate((el) => el.click()),
-    () => {
-      throw `${filename} not found`;
-    },
-  );
-}
 async function update(name, code, config) {
   await goto.editor(name);
   (await page.waitForSelector('input[type="checkbox"]'))?.evaluate(
     (el) => el.checked || el.click(),
   );
+  const fileEls = await page.$$('div.file');
   if (config) {
-    await focusFile('配置模式');
+    await fileEls[1].click();
     await cv(config);
   }
-  await focusFile('.js');
-  await cv(code.replace(/ {4}/g, '  '));
+  await fileEls[0].click();
+  await cv(code);
 }
 /**@returns {import('rollup').Plugin} */
 export function sync(debounce_ms = 3e3) {

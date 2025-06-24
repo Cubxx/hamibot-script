@@ -9,7 +9,7 @@ const html = await fetch(host + path, { method: 'GET' }).then((e) => e.text());
 const website_id = html.match(
   /src="https:\/\/echo.hamibot.com\/.+?data-website-id="(.+?)"/,
 )?.[1];
-if (!website_id) throw 'Failed to get website id';
+if (!website_id) throw new Error('Failed to get website id');
 const _token = await fetch(`https://echo.${hostname}/api/collect`, {
   method: 'POST',
   headers: {
